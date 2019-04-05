@@ -1,0 +1,353 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>预订会议室</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/bootstrap-theme.css">
+    <link rel="stylesheet" href="css/animate.css">
+   
+	<link rel="stylesheet" href="css/bootstrap-table.css">
+	<link rel="stylesheet" href="css/bootstrap-table-sticky-header.css">
+    <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">    <style>
+	.rt{
+		float:right;
+	}
+	
+	.lt{
+		float:left;
+	}
+	.clear{clear:both;}
+	
+	/*table*/
+	#titleDiv>a{
+		margin-right:5px;
+		margin-bottom:5px;
+	}
+	
+	.weekends{color:#d9534f;}
+
+
+.Quick-navigation {
+  position: fixed;
+  z-index: 100;
+  margin: 0;
+  top: 50%;
+  left: 2px;
+  -webkit-transform: translateY(-50%);
+          transform: translateY(-50%);
+}
+
+  </style>  
+  <script src="js/jquery.min"></script>
+  <script src="js/bootstrap.min"></script>
+  
+ <script src="js/bootstrap-table.min"></script>
+  <script src="js/bootstrap-table-sticky-header.min"></script>
+ 
+ <script src="js/datetimepicker.min"></script>
+
+
+<script src="js/cookie.min"></script><script src="js/main"></script>
+<script src="js/regist"></script>
+<script src="js/login"></script>
+
+
+</head>
+<body>
+<!------Hello Summer ^o^------>
+ <div class="navbar navbar-default">
+  <div class="container">
+  
+    <!--第一部分：导航条头部(品牌+汉堡包)-->
+    <div class="navbar-header">
+	  <!--Logo位置--->
+	  <img alt="Brand" class="pull-left" src="img/DHL_rgb.png">
+      <a class="navbar-brand" style="margin-left:5px;">欢迎预订GSC会议室</a>
+      <a class="navbar-toggle" data-toggle="collapse" href="#mymenu">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+    </div>
+    <!--第二部分：导航条折叠部分-->
+    <div id="mymenu" class="navbar-collapse collapse">
+	  <ul class="nav navbar-nav">
+        <li><a href="index.html" class="text-danger">首页</a></li>
+        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#contactModal">联系我们</a></li>
+      </ul>	
+	  
+      <!--导航条中的导航-->
+      <ul id="mymenu2" class="nav navbar-nav navbar-right">
+        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#registerModal">注册</a></li>
+        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#loginModal">登陆</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="container">
+ 
+  <h3>会议室计划表</h3>  <div id="titleDiv">	  	  <p id="dataText" class="text-center pull-left"></p>	  <a class="btn btn-success rt" href="javascript:todayButClick();">Today</a>	  	  <a class="btn btn-success rt" href="javascript:nextButClick();">		<span class="glyphicon glyphicon-forward"></span>	  </a>	 	  <a class="btn btn-success rt" href="javascript:preButClick();">		<span class="glyphicon glyphicon-backward"></span>	  </a>	  <div class="clear"></div>  </div>	  	
+			<table id="table">			<thead id="dataHeadTable">
+				<tr><th>日&nbsp;期</th><th>星&nbsp;期</th></tr>
+			</thead>			<tbody id="dataTable">
+				
+			</tbody>		</table>
+<br>
+
+</div>
+
+<!--登陆modal--->
+<div id="loginModal" class="modal animated fadeOutUp" data-easein="fadeInUp" data-easeout="fadeOutUp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+          <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				  <h4 class="modal-title">登陆</h4>
+				</div>
+				<div class="modal-body">
+					     <form>
+								<div class="form-group">
+									<label class="control-label" for="inputUserName">用户名：</label>
+									<input type="text" id="inputUserName" class="form-control" placeholder="ex:seven.li" required>
+								
+									<span class="help-block">请使用英文名登陆(小写) ex:seven.li</span>
+								</div>
+								
+								<div class="form-group">
+									<label class="control-label" for="inputPassword">密码：</label>
+									<input type="password" id="inputPassword" class="form-control" placeholder="" required>
+								
+									<span class="help-block">密码(非空)</span>
+								</div>
+						</form>
+						<p class="text-right text-danger">新用户请注册</p>
+				</div>
+				
+				<div class="modal-footer">
+				  <button id="submit" type="button" class="btn btn-primary">登陆</button>
+				  <button id="submitToR" type="button" class="btn btn-danger">注册</button>
+				  <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">取消</button>
+				</div>
+			</div>
+		</div>
+</div>
+
+<!--注册modal--->
+<div id="registerModal" class="modal animated fadeOutUp" data-easein="fadeInUp" data-easeout="fadeOutUp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+          <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				  <h4 class="modal-title">注册</h4>
+				</div>
+				<div class="modal-body">
+					    <form>
+							<div class="form-group">
+								<label class="control-label" for="inputUserNameR">用户名：</label>
+								<input type="text" id="inputUserNameR" class="form-control" placeholder="ex:seven.li" required>
+								
+								<span class="help-block">请使用英文名注册(小写) ex:seven.li</span>
+							</div>
+							
+							<div class="form-group">
+								<label class="control-label" for="inputPasswordR">密码：</label>
+								<input type="password" id="inputPasswordR" class="form-control" placeholder="" required>
+								
+								<span class="help-block">密码(非空)</span>
+							</div>
+							
+							<div class="form-group">
+								<label class="control-label" for="inputPassword2R">确认密码：</label>
+								<input type="password" id="inputPassword2R" class="form-control" placeholder="" required>
+								
+								<span class="help-block">密码(非空)</span>
+							</div>
+						</form>
+				</div>
+				<div class="modal-footer">
+				  <button id="submitR" type="button" class="btn btn-primary">注册</button>
+				  <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">取消</button>
+				</div>
+			</div>
+		</div>
+</div>
+
+<!--联系我们的modal--->
+
+<div id="contactModal" class="modal animated fadeOutUp" data-easein="fadeInUp" data-easeout="fadeOutUp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+          <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				  <h4 class="modal-title">联系我们</h4>
+				</div>
+				<div class="modal-body">
+					    <div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">系统管理员</h3>
+			</div>
+			  <div class="panel-body">
+				<address>
+					 <strong>seven.li</strong><br>
+					 <a href="mailto:seven.li@dhl.com">seven.li@dhl.com</a>
+				</address>
+				<address>
+					 <strong>tracy.zheng</strong><br>
+					 <a href="mailto:tracy.zheng@dhl.com">tracy.zheng@dhl.com</a>
+				</address>
+				<address>
+					 <strong>eric.shi</strong>&nbsp;&nbsp;<small class="text-danger">用户名，密码重置</small><br>
+					 <a href="mailto:eric.shim@dhl.com">eric.shim@dhl.com</a>
+				</address>
+			  </div>
+		</div>
+				</div>
+				<div class="modal-footer">
+				  <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</button>
+				</div>
+			</div>
+		</div>
+</div>
+
+<!---预订modal-->
+<form id="bkFormForm"></form>
+<div id="myModal3" class="modal animated fadeOutUp" data-easein="fadeInUp" data-easeout="fadeOutUp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+          <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				  <h4 class="modal-title">会议室订单</h4>
+				</div>
+				<div class="modal-body">
+					<div class="panel panel-default">
+						  <div class="panel-heading">
+							<h3 class="panel-title">预订时间段</h3>
+						  </div>
+						  <div class="panel-body">
+							  <div class="input-group">
+								 <span class="input-group-addon" id="sizing-addon3">开始时间</span>
+									<div class="input-append date form_datetime"">
+										<input id="bkFormStartTime" form="bkFormForm" size="30" type="text" value="" readonly>
+										<span class="add-on"><i class="icon-remove"></i></span>
+										<span class="add-on"><i class="icon-calendar"></i></span>
+									</div>
+							  </div>
+							  <br>
+							  
+								<div class="input-group">
+								 <span class="input-group-addon" id="sizing-addon5">结束时间</span>
+									<div class="input-append date form_datetime">
+										<input id="bkFormEndTime" form="bkFormForm" size="30" type="text" value="" readonly>
+										<span class="add-on"><i class="icon-remove"></i></span>
+										<span class="add-on"><i class="icon-calendar"></i></span>
+									</div>
+							  </div>
+						  </div>
+						  
+					</div>	
+					
+										
+					<div class="input-group">
+						  <div class="input-group-btn">
+							<button id="bkFormRoomListBtn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">会议室<span class="caret"></span></button>
+							<ul id="bkFormRoomListUl" class="dropdown-menu" aria-labelledby="dropdownMenu1"></ul>
+						  </div><!-- /btn-group -->
+							<input id="bkFormMeetingRoom" form="bkFormForm" type="text" class="form-control" aria-label="..." readonly placeholder="会议室(必填项)"><input id="bkFormMeetingRoomVal" type="hidden"/>
+						</div><!-- /input-group -->
+					<br>	
+					<div class="input-group input-group-sm">
+						<span class="input-group-addon" id="sizing-addon2">预订人</span>
+						<input id="bkFormUserName" form="bkFormForm" type="text" class="form-control" readonly aria-describedby="sizing-addon2" required>
+					</div>
+					<br>
+					<div class="input-group input-group-sm">
+						<span class="input-group-addon" id="sizing-addon2">联系电话</span>
+						<input id="bkFormPhoneNum" form="bkFormForm" type="text" class="form-control" aria-describedby="sizing-addon2" placeholder="联系电话(必填项)" required>
+					</div>
+					<br>
+					
+					<div class="input-group input-group-sm">
+						<span class="input-group-addon" id="sizing-addon2">联系邮箱</span>
+						<input id="bkFormEmail" form="bkFormForm" type="text" class="form-control" placeholder="联系邮箱(必填项)" aria-describedby="sizing-addon2" required>
+					</div>
+					<br>
+					<div class="input-group input-group-sm">
+						<span class="input-group-addon" id="sizing-addon2">主&nbsp;&nbsp;&nbsp;题</span>
+						<input id="bkFormSubject" form="bkFormForm" type="text" class="form-control" placeholder="主题(必填项)" aria-describedby="sizing-addon2" required>
+					</div>
+					<br>
+					<div class="input-group input-group-sm">
+						<span class="input-group-addon" id="sizing-addon2">人&nbsp;&nbsp;&nbsp;数</span>
+						<input id="bkFormCount" form="bkFormForm" type="number" class="form-control" placeholder="人数(整数)" aria-describedby="sizing-addon2" required>
+					</div>
+				
+				</div>
+				<div class="modal-footer">
+				  <button id="bkFormSubmit" type="button" class="btn btn-primary">提交</button>
+				  <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">取消</button>
+				</div>
+			</div>
+		</div>
+      </div>
+
+<!--弹出警告框--->
+<div id="alertModal" class="modal animated fadeOutUp" data-easein="fadeInUp" data-easeout="fadeOutUp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+          <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				  <h4 id="alertTitle" class="modal-title text-danger text-center"></h4>
+				</div>
+				<div class="modal-body">
+					<p id="alertContent" class="text-danger text-left"></p>
+				</div>
+				
+				<div class="modal-footer">
+				  <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</button>
+				</div>
+			</div>
+		</div>
+</div>
+
+</body>
+
+</html>
+<!---左侧悬浮条--->
+<nav class="Quick-navigation">
+
+  <div id="navLeftBody" class="pull-left show" >	
+     
+		<a id="bkAClick" href="#myModal3" role="button" class="btn btn-danger btn-lg">
+			<span class="glyphicon glyphicon-edit" aria-hidden="true"></span> 预 订
+		</a>
+		<br>
+		<br>
+		<a href="index.html" role="button" class="btn btn-default btn-lg">
+			<span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> 刷 新
+		</a>
+		<br>
+		<br>
+		<div class="panel panel-default">
+		  <div class="panel-heading"><h5 class="text-center text-muted">状态说明</h5></div>
+		  <div class="panel-body">
+			<div class="btn-group-vertical btn-group-sm" role="group" aria-label="...">
+				<button class="btn btn-primary">已被预订</button>
+				<br>
+				<button class="btn btn-success">预订成功</button>
+			</div>
+		  </div>
+		</div>
+	</div>
+    
+	<div class="pull-right" style="margin-top:80%;">
+		<a id="navLeftButton" role="button" class="btn btn-default btn-sm center-block" style="border-radius:50%;">
+			<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+		</a>
+	</div>
+
+
+</nav>
+

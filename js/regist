@@ -1,0 +1,72 @@
+$(document).ready(function(){
+				
+	$("#submitR").click(function(){
+			var usrName=$("#inputUserNameR").val().trim();
+			var passWd1=$("#inputPasswordR").val().trim();
+			var passWd2=$("#inputPassword2R").val().trim();
+			
+			//initDB
+			usrDB.creatUsrSheet();
+			
+			if(validRegister(usrName,passWd1,passWd2)){
+			
+				var newUser=new userItem(usrName,passWd1);
+				
+				usrDB.usrSheet.push(newUser);
+				
+				usrDB.updateDBLocal();
+				$('#registerModal').modal('hide');
+				alertShowFunction($('#loginModal'),"注册成功","欢迎预订GSC会议室");
+				
+				
+			}
+		});	
+	
+	});
+
+
+		
+		
+
+function validRegister(usrName,passWd1,passWd2){
+	var msg="";
+
+	var returnFlag=false;
+	if(usrName==""){
+		msg+="请填写用户名<br>";
+		returnFlag=true;
+	}
+	if(passWd1==""){
+		msg+="请填写密码<br>";
+		returnFlag=true;
+		}
+	if(passWd2==""){
+		msg+="请填写确认密码<br>";
+		returnFlag=true;
+	}
+	if(passWd1!==passWd2){
+		msg+="请确认密码<br>";
+		returnFlag=true;
+	}
+	if(!returnFlag){
+	
+		if(usrDB.lastModifiedTime<ShowFileData(usrDB.DBPath,"m")){
+			usrDB.creatUsrSheet();
+		}
+		var usrResult=usrDB.usrSheet.filter(function(record){
+						return (record.usrNameR==usrName)
+					});
+		if(usrResult.length>0){
+			msg+="该用户已注册<br>";
+			returnFlag=true;
+		}
+		
+		
+	}
+	if(returnFlag){
+		alertShowFunction($('#registerModal'),"注册失败",msg);
+		return false;
+		}else{
+			return true;
+		}	
+}

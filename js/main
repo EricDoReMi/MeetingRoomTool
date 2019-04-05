@@ -1,0 +1,634 @@
+//Eric.Shi
+
+
+
+//animation
+function addPopoverAnimation(){ 
+
+
+    // add the animation to the popover
+    $("a[rel=popover]").popover().click(function(e) {
+
+        e.preventDefault();
+        if($(this).data('easein')!=undefined){
+          $(this).next().removeClass($(this).data('easein')).addClass('animated ' + $(this).data('easein'));
+		  $(this).next().children("div.popover-content").first().css("overflow","auto");
+		  $(this).next().children("div.popover-content").first().html($(this).data('content')+"<br>"+$(this).data('emails')+"<br>"+$(this).data('phonenum'));
+        }else{
+          $(this).next().addClass('animated ' + 'fadeInLeft');
+		 
+        }
+    })
+
+}
+
+//MyCode
+var headList=['4F 大培训室-40人','4F 小会议室-12人','24F Shanghai-25人','24F Hongkong-20人','24F Training Room-20人','5F Collaborate-18人','5F Learn-15人','5F Evolve-15人'];
+
+var dataBase={
+	meetingRoomSheet:null,//meetingRoom记录表
+	DBPath:'R:\\Transfer2_CTU\\EricShiBackUp\\meetingRoom\\db\\data',
+	lastModifiedTime:null,//最后修改时间
+	creatMeetingRoomSheet:function(){
+		this.meetingRoomSheet=new Array();
+		this.lastModifiedTime=ShowFileData(this.DBPath,"m");
+		this.readFromDBLocal();
+		
+	},
+	readFromDBLocal:function(){
+		var fso=new ActiveXObject("Scripting.FileSystemObject");
+		var f=fso.opentextfile(this.DBPath,1,true);
+		var strSource=f.ReadAll();
+		this.meetingRoomSheet=JSON.parse(strSource);
+		f.close();
+	},
+	updateDBLocal:function(){
+		var fso=new ActiveXObject("Scripting.FileSystemObject");
+		var f=fso.opentextfile(this.DBPath,2,true);
+		this.meetingRoomSheet.sort(ascById);
+		var strResult=JSON.stringify(this.meetingRoomSheet);
+		f.write(strResult);
+		f.close();
+	},
+	refreshDB:function(){
+		if(this.lastModifiedTime<ShowFileData(this.DBPath,"m")){
+			this.creatMeetingRoomSheet();
+		}
+	},
+	generateId:function(){
+		var nextId=1;
+		if(dataBase.meetingRoomSheet.length>0){
+			nextId=this.meetingRoomSheet[this.meetingRoomSheet.length-1].idR+1;
+		}
+		return nextId;
+	},
+
+}
+
+
+function MeetingRoomRecords(idR,yearR,monR,dayR,mtRoomR,userNameR,phoneNumR,subjectR,countR,emailListR,startTimeR,endTimeR){
+	this.idR=idR;
+	this.yearR=yearR;
+	this.monR=monR;
+	this.dayR=dayR;
+	this.mtRoomR=mtRoomR;
+	this.userNameR=userNameR;
+	this.phoneNumR=phoneNumR;
+	this.subjectR=subjectR;
+	this.countR=countR;
+	this.emailListR=emailListR;
+	this.startTimeR=startTimeR;
+	this.endTimeR=endTimeR;
+}
+
+$(document).ready(function(){
+	
+	$("#confirmDeleteModal").modal("show");
+
+		var date = new Date();
+		var y = date.getFullYear();
+		var m = date.getMonth()+1;
+		var d = date.getDate();
+			
+	if(checkCookie()){
+		var nd='<li><a href="javascript:void(0);" style="color:red;">'+getCookie('username')+'</a></li>'
+		$("#mymenu2").append(nd);
+		var scItem=$("#mymenu2").find("a")[1];
+		scItem.innerHTML="退出";
+		$(scItem).removeAttr("data-toggle");
+		$(scItem).removeAttr("data-target");
+		scItem.href="javascript:logout();"
+	}
+	//initDB
+	dataBase.creatMeetingRoomSheet();
+	
+	//updatePage
+	innitDataTable(headList);
+	updateDataTableByDate(date,headList.length+2);
+	$('#table').bootstrapTable({
+		stickyHeader:true
+		});
+	addPopoverAnimation();
+
+	
+	
+	/***遮罩层功能***/
+	innitbkForm(headList,y,m,d);
+	
+	/***左侧悬浮按钮点击***/
+	$("#navLeftButton").click(function(){
+		var tFlag;
+		
+		tFlag = $("#navLeftButton>span").hasClass("glyphicon-chevron-left");
+		
+		if(tFlag){
+		    $("#navLeftBody").removeClass("show")
+			$("#navLeftBody").addClass("hidden")
+			$("#navLeftButton>span").removeClass("glyphicon-chevron-left");
+			$("#navLeftButton>span").addClass("glyphicon-chevron-right");
+			
+		}else{
+			$("#navLeftBody").removeClass("hidden")
+			$("#navLeftBody").addClass("show")
+			$("#navLeftButton>span").removeClass("glyphicon-chevron-right");
+			$("#navLeftButton>span").addClass("glyphicon-chevron-left");
+		
+		}
+		
+	});
+
+	//选择教室了
+	$("#bkFormRoomListUl a").click(function(){
+		$("#bkFormMeetingRoom").val(this.innerHTML);
+		$("#bkFormMeetingRoomVal").val(parseInt($(this).data('val')));
+	});
+
+
+	//区间选择下拉菜单
+	$(".form_datetime").datetimepicker({
+			format:"yyyy-mm-dd hh:ii",
+			autoclose:true,
+			todayHighlight:true,
+			todayBtn:false,
+			hoursDisabled: [0, 1, 2, 3, 4, 5,6,7,23],
+			startDate:y+"-"+m+"-"+d,
+			minuteStep:30,
+		});
+		
+		
+	$("#bkAClick").click(function(){
+		if(checkCookie()){
+			$('#bkFormUserName').val(getCookie('username'));
+			$('#myModal3').modal('show');
+		}else{
+			$('#loginModal').modal('show');
+		}
+	});
+	
+	$("#submitToR").click(function(){
+		$('#loginModal').modal('hide');
+		$('#registerModal').modal('show');
+	});
+	
+	//提交
+	$("#bkFormSubmit").click(function(){
+		
+			if(validbkForm()){
+				var dateStartStr=$("#bkFormStartTime").val();
+				var dateEndStr=$("#bkFormEndTime").val();
+				var startTimeStr=dateStartStr.split(" ")[1];
+				var endTimeStr=dateEndStr.split(" ")[1];
+				
+				var startDateTime=parseDateFromStr(dateStartStr);
+				
+				var endDateTime=parseDateFromStr(dateEndStr);
+
+				var days = getSubDays(startDateTime,endDateTime);
+				
+				var theMtRoom=parseInt($("#bkFormMeetingRoomVal").val());
+				var usrName=$("#bkFormUserName").val();
+				var subJect=$("#bkFormSubject").val().trim();
+				var countNum=parseInt($("#bkFormCount").val());
+				var emailLists=$("#bkFormEmail").val().trim();
+				var phoneNum=$("#bkFormPhoneNum").val().trim();	
+				dataBase.refreshDB();
+								
+				var nextId=null;
+				var newItem=null;
+				var flagArr=new Array();
+				var msgArr=new Array();
+				if(days>0){//差两天及以上
+					nextId=dataBase.generateId();
+					newItem=new MeetingRoomRecords(nextId,startDateTime.getFullYear(),startDateTime.getMonth()+1,startDateTime.getDate(),theMtRoom,usrName,phoneNum,subJect,countNum,emailLists,startTimeStr,"22:30");
+					checkItem(newItem,startDateTime,new Date(startDateTime.getFullYear(),startDateTime.getMonth(),startDateTime.getDate(),22,30),msgArr,flagArr);
+					addItem(newItem,msgArr,flagArr);
+					
+					while(days>1){
+						nextId=dataBase.generateId();
+						startDateTime = new Date(new Date(startDateTime.getFullYear(),startDateTime.getMonth(),startDateTime.getDate(),8,0).getTime() + 24*60*60*1000);
+						newItem=new MeetingRoomRecords(nextId,startDateTime.getFullYear(),startDateTime.getMonth()+1,startDateTime.getDate(),theMtRoom,usrName,phoneNum,subJect,countNum,emailLists,"8:00","22:30");
+						checkItem(newItem,startDateTime,new Date(startDateTime.getFullYear(),startDateTime.getMonth(),startDateTime.getDate(),22,30),msgArr,flagArr);
+						addItem(newItem,msgArr,flagArr);
+						days--;
+					}
+					
+					nextId=dataBase.generateId();
+					newItem=new MeetingRoomRecords(nextId,endDateTime.getFullYear(),endDateTime.getMonth()+1,endDateTime.getDate(),theMtRoom,usrName,phoneNum,subJect,countNum,emailLists,"08:00",endTimeStr);
+					checkItem(newItem,new Date(endDateTime.getFullYear(),endDateTime.getMonth(),endDateTime.getDate(),8,0),endDateTime,msgArr,flagArr);
+					addItem(newItem,msgArr,flagArr);
+						
+				}else{//一天内
+					nextId=dataBase.generateId();
+					newItem=new MeetingRoomRecords(nextId,startDateTime.getFullYear(),startDateTime.getMonth()+1,startDateTime.getDate(),theMtRoom,usrName,phoneNum,subJect,countNum,emailLists,startTimeStr,endTimeStr);
+					
+					checkItem(newItem,startDateTime,endDateTime,msgArr,flagArr);
+					addItem(newItem,msgArr,flagArr);
+					
+				}
+				
+				dataBase.updateDBLocal();
+				var curDate=getCurDateBydataText();
+				updateDataTableByDate(curDate,headList.length+2);
+				$('#myModal3').modal('hide');
+			}
+		}
+	);
+});		
+
+function getSubDays(startDateTime,endDateTime){
+	var times=endDateTime.getTime()-startDateTime.getTime();
+	var days = parseInt(times / (1000 * 60 * 60 * 24));
+	return days;
+}
+
+
+	
+function ascById(x,y)
+    {
+        return (x['idR'] > y['idR']) ? 1:-1;
+    }
+
+function addItem(newItem,msgArr,flagArr){
+	if($.inArray(2,flagArr)==-1){
+			dataBase.meetingRoomSheet.push(newItem);
+			alertHideFuntion($("#myModal3"),"预订成功","欢迎使用GSC会议室");
+		}else{
+			var msg="";
+			for(var k=0;k<msgArr.length;k++){
+				
+				msg+=msgArr[k];
+			}
+			alertShowFunction($("#myModal3"),"预订失败",msg);
+			
+		}
+	
+}	
+	
+function checkItem(newItem,startDateTime,endDateTime,msgArr,flagArr){
+
+	
+	var daysResult=dataBase.meetingRoomSheet.filter(function(record){
+		
+		return (record.monR==newItem.monR && record.dayR==newItem.dayR && record.mtRoomR==newItem.mtRoomR);
+	});
+	
+	
+	if(daysResult.length>0){	
+		
+		for(var i=0;i<daysResult.length;i++){
+			var item=daysResult[i];
+				
+			var startDateItem=parseDateFromStr(item.yearR+"-"+item.monR+"-"+item.dayR+" "+item.startTimeR);
+			var endDateItem=parseDateFromStr(item.yearR+"-"+item.monR+"-"+item.dayR+" "+item.endTimeR);
+			
+			if((startDateTime>=endDateItem) || (endDateTime<=startDateItem)){
+				flagArr.push(1);
+			}else{		
+				flagArr.push(2);
+				
+				msgArr.push(item.yearR+"-"+item.monR+"-"+item.dayR+" "+item.startTimeR+"-"+item.endTimeR+" 已被 "+item.userNameR+"预订<br>");
+				}
+		}
+		
+	}else{
+		flagArr.push(1);
+		
+	}
+}
+	
+function todayButClick(){
+	var date = new Date();
+	updateDataTableByDate(date,headList.length+2)
+		
+}
+
+function preButClick(){
+		var curDate=getCurDateBydataText();
+		
+		var preDate = getPreMonth(curDate); //前一月第一天
+
+		updateDataTableByDate(preDate,headList.length+2)
+		
+		
+}
+
+function nextButClick(){
+	
+	var curDate=getCurDateBydataText();
+	
+	var nextDate = getNextMonth(curDate) //后一月第一天
+	updateDataTableByDate(nextDate,headList.length+2)	
+		
+}
+
+function getCurDateBydataText(){
+	var dayStr=dataText.innerHTML;
+	var dayArr=dayStr.split("-");
+	var curDate = new Date(dayArr[0],dayArr[1]-1,dayArr[2],0,0,0);
+	return curDate;
+}
+
+function updateDataTableByDate(dateCur,colNum){
+		
+		var m = dateCur.getMonth();
+
+		var y = dateCur.getFullYear();
+		
+		var d = dateCur.getDate();
+
+		dataText.innerHTML=y+"-"+(m+1)+"-"+d;
+		
+		updateDataTable(y,m,colNum);
+}
+
+/*
+       * 获取上一个月
+       */
+function getPreMonth(date) {
+            
+            var year = date.getFullYear(); //获取当前日期的年份
+            var month = date.getMonth(); //获取当前日期的月份
+            
+			
+            if(month == 0){
+                year -=  1;
+                month = 11;
+            }else{
+				month-=1;
+			}
+			
+            
+            var days2 = new Date(year, month+1, 0,0,0,0);
+            
+            
+            return days2;
+        }
+       
+        /*
+         * 获取下一个月
+         */        
+function getNextMonth(date) {
+            
+            var year = date.getFullYear(); //获取当前日期的年份
+            var month = date.getMonth(); //获取当前日期的月份
+            
+            if (month == 11) {
+                year += 1;
+                month = 0;
+            }else{
+				month+=1;
+			}
+            
+            var days2 = new Date(year, month+1, 0,0,0,0);
+            return days2;
+            
+        }
+
+function innitbkForm(headList,y,m,d){
+	var $bkFormRoomListbtn=$("#bkFormRoomListBtn").next("ul.dropdown-menu");
+	for(var i=0;i<headList.length;i++){
+		var nd='<li><a data-val="'+i+'" href="javascript:void(0);" style="color:black;">'+headList[i]+'</a></li>'
+		$bkFormRoomListbtn.append(nd);
+	}
+	$("#bkFormStartTime").val(y+"-"+(m<10?("0"+m):m)+"-"+(d<10?("0"+d):d)+" "+"08:00");
+	$("#bkFormEndTime").val(y+"-"+(m<10?("0"+m):m)+"-"+(d<10?("0"+d):d)+" "+"22:30");
+
+}
+
+function validbkForm(){
+	var msg="";
+	var dateStartStr=$("#bkFormStartTime").val();
+	var dateEndStr=$("#bkFormEndTime").val();
+	
+	var startDateTime=parseDateFromStr(dateStartStr);
+	var endDateTime=parseDateFromStr(dateEndStr);
+	
+	//var dateToday = new Date();
+	//var days=getSubDays(dateToday,endDateTime)
+	
+	if($("#bkFormUserName").val().trim()=="")
+		msg+="请填写预定人<br>";
+	if($("#bkFormSubject").val().trim()=="")
+		msg+="请填写主题<br>";
+	if($("#bkFormCount").val().trim()=="")
+		msg+="请填写人数<br>";
+	if(parseInt($("#bkFormCount").val())<1)
+		msg+="人数必须大于1<br>";
+	if($("#bkFormEmail").val().trim()=="")
+		msg+="请填写邮箱<br>";
+	if($("#bkFormMeetingRoom").val().trim()=="")
+		msg+="请填写会议室<br>";
+	if($("#bkFormPhoneNum").val().trim()=="")
+		msg+="请填写联系方式<br>";
+	if(startDateTime>=endDateTime)
+		msg+="结束时间必须大于开始时间<br>";
+	/*if(days>7)
+		msg+="会议室预订时间最多提前一周<br>";*/
+	if(!(msg=="")){
+		alertShowFunction($("#myModal3"),"预订失败",msg);
+		return false;
+		}else{
+			return true;
+		}
+		
+}
+
+function alertShowFunction(fromModel,title,msg){
+	$('#alertModal').on('hidden.bs.modal', function (e) {
+		fromModel.modal("show");	
+	});
+	fromModel.modal("hide");
+	$("#alertTitle").html(title);
+	$("#alertContent").html(msg);
+	$("#alertModal").modal("show");
+
+}
+
+function alertHideFuntion(fromModel,title,msg){
+	fromModel.modal("hide");
+	$("#alertTitle").html(title);
+	$("#alertContent").html(msg);
+	$("#alertModal").modal("show");
+}
+
+
+function parseDateFromStr(theDate){
+	var startStr=theDate.split(" ")[0];
+	var endStr=theDate.split(" ")[1];
+	var y=parseInt(startStr.split("-")[0]);
+	var m=parseInt(startStr.split("-")[1])-1;
+	var d=parseInt(startStr.split("-")[2]);
+	var h=parseInt(endStr.split(":")[0]);
+	var i=parseInt(endStr.split(":")[1]);
+	return new Date(y,m,d,h,i,0);
+}
+	
+function innitDataTable(headList){
+	
+	
+    var tr=document.querySelectorAll("#dataHeadTable>tr")[0]
+	
+	for(var i=0;i<headList.length;i++){
+		var th=document.createElement("th");
+		th.innerHTML='<div class="text-center">'+headList[i].split("-")[0]+'</div>'+'<div class="text-center">'+headList[i].split("-")[1]+'</div>';
+		tr.appendChild(th);
+	}
+	
+}
+	
+function updateDataTable(yearNum,MonNum,colCounts){
+	 var dayCount;
+     dayCount = new Date(yearNum,MonNum+1,0).getDate();
+     
+	 dataTable.innerHTML="";
+	 
+	 
+	 var monResult=null;
+	 
+	 
+	 //从meetingRoomSheet读取当月数据
+	 if(dataBase.meetingRoomSheet){
+		monResult=dataBase.meetingRoomSheet.filter(function(record){
+						return (record.yearR==yearNum && record.monR==(MonNum+1))
+					});
+		
+			}
+
+	 
+	 for(var i=1;i<=dayCount;i++){
+		var r=dataTable.insertRow();
+		
+		for(var j=1;j<=colCounts;j++){
+			if(j===1){
+				r.insertCell().innerHTML=i;
+			}else if(j===2){
+				var dayNum=new Date(yearNum,MonNum,i).getDay();
+				
+				r.insertCell().innerHTML=formatDay(dayNum);
+				if(dayNum===0||dayNum===6){
+					r.className="weekends";
+				}
+			}else{
+				
+				
+				var cel=r.insertCell();
+				//cel.innerHTML='<div class="btn-group-vertical btn-group-xs" role="group" aria-label="..."></div>'
+				cel.setAttribute("data-rowNum",i);
+				cel.setAttribute("data-colNum",j-2);
+				
+				
+				if(monResult.length>0){
+					
+					var dayResult=monResult.filter(function(record){
+						return (record.dayR==i && record.mtRoomR==(j-3));
+					});
+					
+					
+					
+					if(dayResult.length>0){
+						for(var t=0;t<dayResult.length;t++){
+							var dayDat=dayResult[t];
+							var msg=dayDat.startTimeR+"-"+dayDat.endTimeR+'<br>'+dayDat.userNameR;
+							var msg2="人数:"+dayDat.countR;
+							var msg3="邮箱:"+dayDat.emailListR;
+							var msg5="电话:"+dayDat.phoneNumR;
+							var btn=null;
+
+							if(dayDat.userNameR==getCookie('username') || 'admin'==getCookie('username')){
+								btn='<a data-original-title="'+dayDat.subjectR+'" data-animation="false" data-easein="fadeInRight" href="#" class="btn btn-success btn-xs btn-block" rel="popover" data-placement="right" data-content="'+msg2+'" data-emails="'+msg3+'" data-phonenum="'+msg5+'"><button onclick="deleteItem(event)" type="button" class="close pull-right" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+msg+'</a><input type="hidden" value="'+dayDat.idR+'"/>';
+								
+							}else{
+								
+								btn='<a data-original-title="'+dayDat.subjectR+'" data-animation="false" data-easein="fadeInRight" href="#" class="btn btn-primary btn-xs btn-block" rel="popover" data-placement="right" data-content="'+msg2+'" data-emails="'+msg3+'" data-phonenum="'+msg5+'">'+msg+'</a><input type="hidden" value="'+dayDat.idR+'"/>';
+							}
+							$(cel).append($(btn));
+							
+						}
+						
+					}
+					
+					
+				}
+				
+				
+			}
+		}
+	 }
+	 
+	 addPopoverAnimation();
+
+}
+
+//删除具体项目
+function deleteItem(e){
+	if(e.stopPropagation)
+			e.stopPropagation();
+		else
+			e.cancelBubble=true;
+		e.preventDefault();
+		
+	if(confirm("确定删除?")){
+		var target=e.target||e.srcElement;
+		var deleteId=parseInt($(target).parent().next().val());
+		var dataResult=null;
+
+		dataResult=dataBase.meetingRoomSheet.filter(function(record){
+							return (record.idR!==deleteId)
+						});
+		dataBase.meetingRoomSheet=dataResult;
+		
+		dataBase.updateDBLocal();
+		var curDate=getCurDateBydataText();
+		updateDataTableByDate(curDate,headList.length+2);
+	}
+}
+
+function logout(){
+	setCookie("username","");
+	
+	$("#mymenu2").children("li").last().remove();
+	$("#mymenu2").find("a")[1].innerHTML="登陆";
+	$("#mymenu2").find("a")[1].href="login.html";
+	location.href = 'index.html';
+}
+
+/*=============common==============*/
+
+//按数字返回星期几
+function formatDay(dayNum){
+	var weekday=new Array(7);
+	weekday[0]="Sun";
+	weekday[1]="Mon";
+	weekday[2]="Tue";
+	weekday[3]="Wed";
+	weekday[4]="Thu";
+	weekday[5]="Fri";
+	weekday[6]="Sat";
+	return weekday[dayNum];
+}
+
+//返回文件的创建时间，访问时间和修改时间
+//filespec:文件所在路径
+//type:c创建的时间，m最后修改时间，a最后访问时间
+function ShowFileData(filespec,type){			
+	var fso,f,s;
+	fso=new ActiveXObject("Scripting.FileSystemObject");
+	f=fso.GetFile(filespec);
+
+	var d=f.DateCreated;
+	var Cdate=new Date(d);			
+	d=f.DateLastModified;
+	var Mdate=new Date(d);			
+	d=f.DateLastAccessed;			
+	var Adate=new Date(d);
+
+	if(type=="c"){
+		return Cdate;
+	}else if(type=="m"){
+		return Mdate;
+	}else if(type=="a"){
+		return Adate;
+	}
+}
+
+

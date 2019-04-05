@@ -1,0 +1,94 @@
+var usrDB={
+	usrSheet:null,//meetingRoom记录表
+	DBPath:'R:\\Transfer2_CTU\\EricShiBackUp\\meetingRoom\\db\\usr',
+	lastModifiedTime:null,//最后修改时间
+	saveTempTime:null,//需要保存时的时间
+	creatUsrSheet:function(){
+		this.usrSheet=new Array();
+		this.lastModifiedTime=ShowFileData(this.DBPath,"m");
+		this.readFromDBLocal();
+		
+	},
+	readFromDBLocal:function(){
+		var fso=new ActiveXObject("Scripting.FileSystemObject");
+		var f=fso.opentextfile(this.DBPath,1,true);
+		var strSource=f.ReadAll();
+		this.usrSheet=JSON.parse(strSource);
+		f.close();
+	},
+	updateDBLocal:function(){
+		var fso=new ActiveXObject("Scripting.FileSystemObject");
+		var f=fso.opentextfile(this.DBPath,2,true);
+		var strResult=JSON.stringify(this.usrSheet);
+		f.write(strResult);
+		f.close();
+	},
+	
+}
+
+function userItem(userName,passWd){
+	this.usrNameR=userName;
+	this.passWdR=passWd;
+}
+
+$(document).ready(function(){
+				
+	
+	
+	
+	$("#submit").click(function(){
+			var usrName=$("#inputUserName").val().trim();
+			var passWd1=$("#inputPassword").val().trim();
+			
+			
+			//initDB
+			usrDB.creatUsrSheet();
+			
+			if(validLogin(usrName,passWd1)){
+				setCookie("username",usrName);
+				$('#loginModal').modal('hide');
+				location.href = 'index.html';
+			}
+		});	
+	
+	});
+
+		
+		
+
+function validLogin(usrName,passWd1){
+	var msg="";
+
+	var returnFlag=false;
+	if(usrName==""){
+		msg+="请填写用户名<br>";
+		returnFlag=true;
+	}
+	if(passWd1==""){
+		msg+="请填写密码<br>";
+		returnFlag=true;
+		}
+
+	if(!returnFlag){
+	
+		if(usrDB.lastModifiedTime<ShowFileData(usrDB.DBPath,"m")){
+			usrDB.creatUsrSheet();
+		}
+		var usrResult=usrDB.usrSheet.filter(function(record){
+			
+						return (record.usrNameR==usrName && record.passWdR==passWd1)
+					});
+		if(usrResult.length<1){
+			msg+="用户名或密码错误<br>";
+			returnFlag=true;
+		}
+		
+		
+	}
+	if(returnFlag){
+		alertShowFunction($('#loginModal'),"登陆失败",msg);
+		return false;
+		}else{
+			return true;
+		}	
+}
